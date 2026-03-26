@@ -67,7 +67,13 @@ $ARGUMENTS = "INTRD-36922 dev"
   - Write back to `.claude/cache/jira-tickets.json`
   - Display: "Cached ticket data for future use"
 
-#### Step 4: Continue with ticket data
+#### Step 4: Rename Session
+
+- Rename the current Claude session to the ticket ID using the `/rename` slash command:
+  - Run: `/rename [TICKET-NUMBER]`
+- This allows easy identification of the session in the status line and when resuming later
+
+#### Step 5: Continue with ticket data
 
 - The ticket data is now available from either cache or fresh fetch
 
@@ -104,7 +110,7 @@ $ARGUMENTS = "INTRD-36922 dev"
 
 <!-- Here we can start the developement of our US -->
 
-#### Step 5: Create the Portal Page
+#### Step 6: Create the Portal Page
 
 1. **Checkout Branch:**
 

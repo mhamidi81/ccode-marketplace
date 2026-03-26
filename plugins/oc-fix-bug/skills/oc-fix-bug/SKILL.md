@@ -74,7 +74,13 @@ $ARGUMENTS = "INTRD-36922 dev"
   USERNAME:       [USERNAME]
   ```
 
-### Step 2: Update JIRA Status to In Progress
+### Step 2: Rename Session
+
+- Rename the current Claude session to the ticket ID using the `/rename` slash command:
+  - Run: `/rename [TICKET-NUMBER]`
+- This allows easy identification of the session in the status line and when resuming later
+
+### Step 3: Update JIRA Status to In Progress
 
 - Using the Atlassian MCP server, transition the ticket [TICKET-NUMBER] to **"In Progress"**
   - First call `getTransitionsForJiraIssue` to get available transitions
@@ -83,7 +89,7 @@ $ARGUMENTS = "INTRD-36922 dev"
 - If the ticket is already "In Progress", skip and inform the user
 - If the transition fails, warn the user but continue with the next steps
 
-### Step 3: Create Fix Branch
+### Step 4: Create Fix Branch
 
 - Fetch the latest changes: `git fetch origin`
 - Create the fix branch from [BASE-BRANCH]:
@@ -96,7 +102,7 @@ $ARGUMENTS = "INTRD-36922 dev"
   - ( ) Free input from the user: "Enter branch name:"
 - If branch creation fails, report error and stop execution
 
-### Step 4: Start Fixing
+### Step 5: Start Fixing
 
 - Read the JIRA ticket description and acceptance criteria from the ticket data
 - Analyze the bug report to understand:
