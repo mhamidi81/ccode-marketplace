@@ -1,12 +1,17 @@
 ---
 name: oc-review-pr
-description: Review a pull request linked to a JIRA ticket — fetch PR from Bitbucket, run frontend review, and generate a detailed report with suggested fixes
+description: Review a pull request linked to a JIRA ticket — fetch PR from Bitbucket, select the appropriate reviewer agent based on the repository, and generate a detailed report with suggested fixes
 argument-hint: <TICKET-ID> (e.g., INTRD-36922)
 ---
 
 ## Purpose
 
-Review a pull request associated with a JIRA ticket by fetching the PR diff from Bitbucket, running a comprehensive code review using the `oc-frontend-reviewer` agent, and presenting a clear, meaningful, and beautifully formatted report with actionable fix suggestions.
+Review a pull request associated with a JIRA ticket by fetching the PR diff from Bitbucket, automatically selecting the correct reviewer agent based on the repository, and presenting a clear, meaningful, and beautifully formatted report with actionable fix suggestions.
+
+**Reviewer routing:**
+
+- **opencell-portal** (`https://bitbucket.org/opencellsoft/opencell-portal.git`) → `oc-frontend-reviewer:frontend-reviewer`
+- **opencell-core** (`https://bitbucket.org/opencellsoft/opencell-core.git`) → `oc-core-reviewer:oc-core-reviewer`
 
 ## Context
 
@@ -34,7 +39,25 @@ Parse the $ARGUMENTS to get:
   - Inform user: "This command currently supports Bitbucket repositories only."
   - Stop execution
 
-### 3. Find the Pull Request for the Ticket
+### 3. Select the Reviewer Agent
+
+Based on the remote URL, determine which reviewer agent to use:
+
+- If remote URL contains `opencell-portal`:
+  - Set [REVIEWER-AGENT] = `oc-frontend-reviewer:frontend-reviewer`
+  - Set [REVIEWER-LABEL] = `oc-frontend-reviewer`
+  - Set [REVIEW-DOMAIN] = `frontend`
+  - Set [REVIEW-CATEGORIES] to the frontend categories (see Step 6)
+- If remote URL contains `opencell-core`:
+  - Set [REVIEWER-AGENT] = `oc-core-reviewer:oc-core-reviewer`
+  - Set [REVIEWER-LABEL] = `oc-core-reviewer`
+  - Set [REVIEW-DOMAIN] = `backend`
+  - Set [REVIEW-CATEGORIES] to the backend categories (see Step 6)
+- If neither matches:
+  - Inform user: "Unsupported repository. This command supports opencell-portal and opencell-core repositories only."
+  - Stop execution
+
+### 4. Find the Pull Request for the Ticket
 
 Search for a pull request related to [TICKET-NUMBER] on Bitbucket:
 
@@ -69,7 +92,7 @@ curl -s -H "Authorization: Bearer ${BITBUCKET_ACCESS_TOKEN}" \
   - Inform user: "No pull request found for [TICKET-NUMBER]"
   - Stop execution
 
-### 4. Fetch the PR Diff
+### 5. Fetch the PR Diff
 
 Get the full diff of the pull request to understand all changes:
 
@@ -97,7 +120,7 @@ curl -s -H "Authorization: Bearer ${BITBUCKET_ACCESS_TOKEN}" \
   "https://api.bitbucket.org/2.0/repositories/[REPO-OWNER]/[REPO-NAME]/pullrequests/[PR-ID]/diff"
 ```
 
-### 5. Display PR Overview
+### 6. Display PR Overview
 
 Show the user a quick overview before the review:
 
@@ -105,20 +128,21 @@ Show the user a quick overview before the review:
 Pull Request Review
 ====================
 
-Ticket:  [TICKET-NUMBER] — [TICKET-SUMMARY]
-PR:      #[PR-ID] — [PR-TITLE]
-Author:  [PR-AUTHOR]
-Branch:  [PR-SOURCE-BRANCH] → [PR-DEST-BRANCH]
-State:   [PR-STATE]
-URL:     [PR-URL]
-Files:   [number of changed files] files changed
+Ticket:    [TICKET-NUMBER] — [TICKET-SUMMARY]
+PR:        #[PR-ID] — [PR-TITLE]
+Author:    [PR-AUTHOR]
+Branch:    [PR-SOURCE-BRANCH] → [PR-DEST-BRANCH]
+State:     [PR-STATE]
+URL:       [PR-URL]
+Files:     [number of changed files] files changed
+Reviewer:  [REVIEWER-LABEL] ([REVIEW-DOMAIN])
 
 Starting review...
 ```
 
-### 6. Run the Frontend Review
+### 7. Run the Code Review
 
-Use the `oc-frontend-reviewer` agent (subagent_type: `oc-frontend-reviewer:frontend-reviewer`) to perform a comprehensive code review.
+Use the selected [REVIEWER-AGENT] agent to perform a comprehensive code review.
 
 Pass the following to the reviewer agent:
 
@@ -127,7 +151,7 @@ Pass the following to the reviewer agent:
 - Context: "This is a PR review for [TICKET-NUMBER]: [TICKET-SUMMARY]"
 - Instruction: "Review the following pull request diff. Focus on the changed code only. For each issue found, provide the exact file path and line context. Suggest concrete fixes with code snippets."
 
-The reviewer should evaluate:
+**If [REVIEW-DOMAIN] is `frontend`**, the reviewer should evaluate:
 
 - TypeScript quality and type safety
 - React component patterns and best practices
@@ -143,7 +167,22 @@ The reviewer should evaluate:
 - Error handling
 - Security concerns
 
-### 7. Generate the Review Report
+**If [REVIEW-DOMAIN] is `backend`**, the reviewer should evaluate:
+
+- Jakarta EE compliance (no javax.*)
+- Entity layer (base classes, field types, relationships, fetch strategies)
+- Service layer (exceptions, validation placement, return values)
+- API layer (BaseCrudApi, scope annotations, parameter validation)
+- DTO layer (immutable, wrapper types, Resource interface)
+- Mapper methods (fromDto/toDto, null vs empty handling)
+- REST endpoints (CRUD paths, HTTP status codes, no try-catch)
+- Liquibase changesets (ID format, both files, type mappings)
+- Unit tests (Mockito patterns, EntityManager mocking, ArgumentCaptor)
+- Code quality (no var, curly braces, exception handling)
+- Performance (N+1 queries, fetch strategies)
+- Security (SQL injection, input validation)
+
+### 8. Generate the Review Report
 
 Compile the review results into a beautiful, well-structured report. Use the following format:
 
@@ -156,6 +195,7 @@ Compile the review results into a beautiful, well-structured report. Use the fol
 **PR #[PR-ID]** — [PR-TITLE]
 **Author:** [PR-AUTHOR] | **Branch:** [PR-SOURCE-BRANCH] → [PR-DEST-BRANCH]
 **Review Date:** [CURRENT-DATE]
+**Reviewer:** [REVIEWER-LABEL]
 
 ---
 
@@ -187,7 +227,7 @@ For each critical issue:
 - **Problem:** [Clear description of the issue]
 - **Impact:** [Why this matters — security, bugs, data loss, etc.]
 - **Suggested Fix:**
-  ```typescript
+  ```
   // Before (current code)
   [problematic code snippet]
 
@@ -207,7 +247,7 @@ For each warning:
 - **File:** `[file-path]`
 - **Issue:** [Description]
 - **Suggestion:**
-  ```typescript
+  ```
   [suggested improvement]
   ```
 
@@ -235,6 +275,8 @@ For each suggestion, a concise bullet point:
 
 ### Review Breakdown
 
+**For frontend reviews (opencell-portal):**
+
 | Category              | Status | Notes                          |
 |-----------------------|--------|--------------------------------|
 | TypeScript Quality    | [status-icon] | [brief note]            |
@@ -249,6 +291,23 @@ For each suggestion, a concise bullet point:
 | Accessibility         | [status-icon] | [brief note]            |
 | Performance           | [status-icon] | [brief note]            |
 | Error Handling        | [status-icon] | [brief note]            |
+| Security              | [status-icon] | [brief note]            |
+
+**For backend reviews (opencell-core):**
+
+| Category              | Status | Notes                          |
+|-----------------------|--------|--------------------------------|
+| Jakarta EE Compliance | [status-icon] | [brief note]            |
+| Entity Layer          | [status-icon] | [brief note]            |
+| Service Layer         | [status-icon] | [brief note]            |
+| API Layer             | [status-icon] | [brief note]            |
+| DTO Layer             | [status-icon] | [brief note]            |
+| Mapper Methods        | [status-icon] | [brief note]            |
+| REST Endpoints        | [status-icon] | [brief note]            |
+| Liquibase             | [status-icon] | [brief note]            |
+| Unit Tests            | [status-icon] | [brief note]            |
+| Code Quality          | [status-icon] | [brief note]            |
+| Performance           | [status-icon] | [brief note]            |
 | Security              | [status-icon] | [brief note]            |
 
 Where [status-icon] is:
@@ -269,17 +328,17 @@ Where [status-icon] is:
 
 ---
 
-*Review generated by Claude Code with oc-frontend-reviewer*
+*Review generated by Claude Code with [REVIEWER-LABEL]*
 *PR: [PR-URL]*
 ```
 
-### 8. Offer Next Steps
+### 9. Offer Next Steps
 
 After displaying the report, offer the user actionable next steps:
 
 - If there are critical issues or warnings with suggested fixes:
   - "Would you like me to apply the suggested fixes automatically?"
-  - If user agrees, use the `oc-frontend-reviewer:frontend-reviewer` agent to apply fixes to the local codebase
+  - If user agrees, use the [REVIEWER-AGENT] agent to apply fixes to the local codebase
 - If the PR looks good:
   - "The PR looks good! You can approve it directly on Bitbucket: [PR-URL]"
 - Optionally:
@@ -293,13 +352,21 @@ After displaying the report, offer the user actionable next steps:
 ## Examples
 
 ```bash
-# Review the PR for a specific JIRA ticket
+# Review a backend PR (opencell-core repo)
 /oc-review-pr INTRD-36922
+# → Detects opencell-core repo → uses oc-core-reviewer
+# → Reviews Java/EJB/JPA/Liquibase code against core guidelines
+
+# Review a frontend PR (opencell-portal repo)
+/oc-review-pr INTRD-41200
+# → Detects opencell-portal repo → uses oc-frontend-reviewer
+# → Reviews React/TypeScript code against frontend guidelines
 
 # Review will:
-# 1. Find the PR associated with INTRD-36922 on Bitbucket
-# 2. Fetch the full diff
-# 3. Run a comprehensive frontend code review
-# 4. Display a detailed report with scores, issues, and fix suggestions
-# 5. Offer to apply fixes or post the review as a PR comment
+# 1. Find the PR associated with the ticket on Bitbucket
+# 2. Detect the repository and select the appropriate reviewer
+# 3. Fetch the full diff
+# 4. Run a comprehensive code review with the selected agent
+# 5. Display a detailed report with scores, issues, and fix suggestions
+# 6. Offer to apply fixes or post the review as a PR comment
 ```
