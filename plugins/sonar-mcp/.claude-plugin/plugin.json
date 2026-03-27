@@ -1,0 +1,27 @@
+{
+  "name": "oc-sonar-mcp",
+  "description": "Connect to SonarQube MCP server to access code quality metrics, issues, and analysis results",
+  "version": "1.0.0",
+  "mcpServers": {
+    "sonarqube": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "--init",
+        "--pull=always",
+        "-i",
+        "--rm",
+        "-e",
+        "SONARQUBE_TOKEN",
+        "-e",
+        "SONARQUBE_URL",
+        "mcp/sonarqube"
+      ],
+      "env": {
+        "SONARQUBE_TOKEN": "${SONARQUBE_TOKEN}",
+        "SONARQUBE_URL": "https://sonar.opencell.eu"
+      }
+    }
+  }
+}
