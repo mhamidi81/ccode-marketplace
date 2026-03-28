@@ -1,0 +1,23 @@
+{
+  "name": "oc-opencell-mcp",
+  "description": "Connect to the Opencell billing system via MCP to manage invoices, quotes, customers, payments, subscriptions, dunning, and all billing operations",
+  "version": "1.0.0",
+  "mcpServers": {
+    "opencell": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/home/mhamidi/workspace/oc/ai/mcps/opencell-mcp-server/dist/index.js"
+      ],
+      "env": {
+        "OPENCELL_BASE_URL": "${OPENCELL_BASE_URL}",
+        "OPENCELL_API_VERSION": "${OPENCELL_API_VERSION:-v2}",
+        "KEYCLOAK_URL": "${KEYCLOAK_URL}",
+        "KEYCLOAK_REALM": "${KEYCLOAK_REALM}",
+        "KEYCLOAK_CLIENT_ID": "${KEYCLOAK_CLIENT_ID}",
+        "KEYCLOAK_CLIENT_SECRET": "${KEYCLOAK_CLIENT_SECRET}",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+      }
+    }
+  }
+}
