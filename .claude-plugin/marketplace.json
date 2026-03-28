@@ -82,6 +82,11 @@
       "name": "oc-review-pr",
       "source": "./plugins/oc-review-pr",
       "description": "Review a pull request linked to a JIRA ticket using the frontend-reviewer agent with a detailed report and suggested fixes"
+    },
+    {
+      "name": "oc-opencell-mcp",
+      "source": "./plugins/opencell-mcp",
+      "description": "Connect to the Opencell billing system via MCP to manage invoices, quotes, customers, payments, subscriptions, dunning, and all billing operations"
     }
   ]
 }
