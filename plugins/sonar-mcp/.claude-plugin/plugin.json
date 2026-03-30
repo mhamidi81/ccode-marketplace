@@ -20,7 +20,7 @@
       ],
       "env": {
         "SONARQUBE_TOKEN": "${SONARQUBE_TOKEN}",
-        "SONARQUBE_URL": "https://sonar.opencell.eu"
+        "SONARQUBE_URL": "${SONARQUBE_URL}"
       }
     }
   }
