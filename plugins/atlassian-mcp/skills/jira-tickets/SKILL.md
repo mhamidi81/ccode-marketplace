@@ -2,7 +2,7 @@
 name: jira-tickets
 description: Search, read, create, and update Jira tickets via Atlassian MCP
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Glob, Grep, mcp__atlassian__*
+allowed-tools: Read, Write, Edit, Glob, Grep, mcp__claude_ai_Atlassian__*
 argument-hint: "<ticket-key-or-query>"
 ---
 
