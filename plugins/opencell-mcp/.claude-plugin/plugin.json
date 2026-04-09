@@ -7,7 +7,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/home/mhamidi/workspace/oc/ai/mcps/opencell-mcp-server/dist/index.js"
+        "C:\\Users\\moham\\workspace\\ai\\opencell-mcp-server\\dist\\index.js"
       ],
       "env": {
         "OPENCELL_BASE_URL": "${OPENCELL_BASE_URL}",
