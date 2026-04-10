@@ -5,9 +5,10 @@
   "mcpServers": {
     "opencell": {
       "type": "stdio",
-      "command": "node",
+      "command": "npx",
       "args": [
-        "C:\\Users\\moham\\workspace\\ai\\opencell-mcp-server\\dist\\index.js"
+        "-y",
+        "github:mhamidi81/opencell-mcp-server"
       ],
       "env": {
         "OPENCELL_BASE_URL": "${OPENCELL_BASE_URL}",
